@@ -1,4 +1,4 @@
-// 使用这些define来减少使用windows.h需要书写的额外的代码
+// creates #define constants that reduce the amount of code that is brought in by including <windows.h>:
 #define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN
 #define WIN32_EXTRA_LEAN
@@ -35,6 +35,7 @@ Application* gApplication = 0;
 GLuint gVertexArrayObject = 0;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
+//int main(int* argc, char** argv)
 {
 	gApplication = new Application();
 
@@ -124,4 +125,5 @@ int main(int argc, const char** argv)
 #endif
 
 //#pragma comment(lib, "opengl32.lib")
+
 
