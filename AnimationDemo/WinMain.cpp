@@ -65,22 +65,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	// 本质上应该是个指向结构体的指针, 这个结构体只有一个int作为public成员
 	// 我发现这里的Handle都是这么包装的, 本质就是一个int
 	wndclass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	
+
 	wndclass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-	
+
 	// hCursor is a handle to the mouse cursor.
 	// hCursor的类型其实就是HICON
 	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	
+
 	// hbrBackground is a handle to the brush which will be used to fill the window background. 
 	// We used pre-defined window color to paint background of our window.
 	// h代表handle, br代表brush, 代表用于填充Window背景的brush, 好像就是窗口的背景颜色
 	// COLOR_BTNFACE代表一种颜色类型
 	wndclass.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
-	
+
 	// 代表menu名, 暂时不知道什么是menu
 	wndclass.lpszMenuName = 0;
-	
+
 	// 代表类名, lpszClassName是个指向const string的指针
 	wndclass.lpszClassName = "Win32 Game Window";
 
@@ -104,7 +104,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	// WS_MINIMIZEBOX: 窗口有最小化的按钮
 	// WS_SYSMENU: The window has a window menu on its title bar
 	DWORD style = (WS_OVERLAPPED | WS_CAPTION |
-			WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
+		WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
 	// | WS_THICKFRAME to resize
 
 	// 调整Window的Rect
@@ -152,15 +152,92 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	// 重新绑定到Null的Render Context上
 	wglMakeCurrent(NULL, NULL);
 	// 删除遗留的临时Render Context
+	// 问题, 这里创建一个临时的RC, 然后创建真正的RC之后, 又删掉这个临时的RC, 这是何必?
 	wglDeleteContext(tempRC);
 	// 绑定到新创建的RenderContext上
 	wglMakeCurrent(hdc, hglrc);
 
-	if (!gladLoadGL()) { std::cout << "Could not initialize GLAD\n"; }
-	else {
+
+	if (!gladLoadGL())
+		std::cout << "Could not initialize GLAD\n";
+	else
 		std::cout << "OpenGL Version " << GLVersion.major << "." << GLVersion.minor << "\n";
+
+	// 设置vsync
+	// 对应的设置函数不属于核心函数, 所以要去寻址, 名字是wglGetExtensionsStringEXT
+	PFNWGLGETEXTENSIONSSTRINGEXTPROC _wglGetExtensionsStringEXT =
+		(PFNWGLGETEXTENSIONSSTRINGEXTPROC)wglGetProcAddress("wglGetExtensionsStringEXT");
+	// 这个函数会返回一个string, 这里通过是否以"WGL_EXT_swap_control"结尾来判断是否支持vsync
+	// strstr: Returns a pointer to the first occurrence of str2 in str1, or a null pointer if str2 is not part of str1.
+	// 会返回右边的字符串在左边字符串的位置的指针
+	bool swapControlSupported = strstr(_wglGetExtensionsStringEXT(), "WGL_EXT_swap_control") != 0;
+
+	int vsynch = 0;
+	if (swapControlSupported)
+	{
+		// 获取两个函数的地址: wglSwapIntervalEXT和wglGetSwapIntervalEXT
+		PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT =
+			(PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+		PFNWGLGETSWAPINTERVALEXTPROC wglGetSwapIntervalEXT =
+			(PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress("wglGetSwapIntervalEXT");		if (wglSwapIntervalEXT(1))
+		{
+			std::cout << "Enabled vsynch\n";
+			vsynch = wglGetSwapIntervalEXT();
+		}
+		else
+			std::cout << "Could not enable vsynch\n";
 	}
-}
+	else
+	{
+		//!swapControlSupported
+		std::cout << "WGL_EXT_swap_control not supported\n";
+	}	glGenVertexArrays(1, &gVertexArrayObject);
+	glBindVertexArray(gVertexArrayObject);	ShowWindow(hwnd, SW_SHOW);
+	UpdateWindow(hwnd);
+	gApplication->Init();	DWORD lastTick = GetTickCount();
+	MSG msg;
+	while (true)
+	{
+		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			if (msg.message == WM_QUIT)
+				break;
+
+			TranslateMessage(&msg);			DispatchMessage(&msg);
+		}		DWORD thisTick = GetTickCount();
+		float dt = float(thisTick - lastTick) * 0.001f;
+		lastTick = thisTick;
+		if (gApplication != 0)
+		{
+			gApplication->Update(dt);
+		}		if (gApplication != 0)
+		{
+			RECT clientRect;
+			GetClientRect(hwnd, &clientRect);
+			clientWidth = clientRect.right - clientRect.left;
+			clientHeight = clientRect.bottom - clientRect.top;
+			glViewport(0, 0, clientWidth, clientHeight);
+			glEnable(GL_DEPTH_TEST);
+			glEnable(GL_CULL_FACE);
+			glPointSize(5.0f);
+			glBindVertexArray(gVertexArrayObject);
+			glClearColor(0.5f, 0.6f, 0.7f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+			float aspect = (float)clientWidth / (float)clientHeight;
+			gApplication->Render(aspect);
+		}		if (gApplication != 0)
+		{
+			SwapBuffers(hdc);
+			if (vsynch != 0)
+				glFinish();
+		}
+	}// End Game Loop	if (gApplication != 0)
+	{
+		std::cout << "Expectedapplication to be null on exit\n";
+		delete gApplication;
+	}
+
+	return (int)msg.wParam;}
 
 #if _DEBUG
 // 如果在Debug状态下, 把subsystem设置到console
