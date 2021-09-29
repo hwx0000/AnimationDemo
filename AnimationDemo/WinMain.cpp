@@ -94,17 +94,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	int clientWidth = 800;
 	int clientHeight = 600;
 	RECT windowRect;
+	// 四个值代表离屏幕四个方向上的间距, 顺序是左上右下
 	SetRect(&windowRect, (screenWidth / 2) - (clientWidth / 2),
 		(screenHeight / 2) - (clientHeight / 2),
 		(screenWidth / 2) + (clientWidth / 2),
 		(screenHeight / 2) + (clientHeight / 2));
 
+	// 调整Window的Rect
 	AdjustWindowRectEx(&windowRect, wndclass.style, FALSE, 0);
+	// 根据WindowInfo和rect创建真正的Window
 	HWND hwnd = CreateWindowEx(0, wndclass.lpszClassName, "Game Window", wndclass.style, windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom -
 		windowRect.top, NULL, NULL, hInstance, szCmdLine);
-	HDC hdc = GetDC(hwnd);
+	HDC hdc = GetDC(hwnd);// DC应该是Device吧
 
-	// 6
+	// 创建pixel format descriptor, 主要是进行绘制的相关设置
 	PIXELFORMATDESCRIPTOR pfd;
 	memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
 	pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
@@ -115,12 +118,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	pfd.cDepthBits = 32;
 	pfd.cStencilBits = 8;
 	pfd.iLayerType = PFD_MAIN_PLANE;
+	// 这个函数会尝试去在输入的device context里寻找, 为了找到与输入的pfd最匹配的pixel format
 	int pixelFormat = ChoosePixelFormat(hdc, &pfd);
+	// 设置device context的pfd
 	SetPixelFormat(hdc, pixelFormat, &pfd);
 
-	//7.create a temporary OpenGL context using wglCreateContext
-	HGLRC tempRC = wglCreateContext(hdc); wglMakeCurrent(hdc, tempRC);
-	PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;
+	// 7.create a temporary OpenGL context using wglCreateContext
+	HGLRC tempRC = wglCreateContext(hdc);// 创建Render Context
+	wglMakeCurrent(hdc, tempRC);// 绑定到device上
+	// PFNWGLCREATECONTEXTATTRIBSARBPROC代表了wglCreateContextAttribsARB的函数签名
+	PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;// 创建一个空的函数指针
+	// 通过wglGetProcAddress对函数寻址, 然后赋值
 	wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateCon textAttribsARB");
 
 	//8. A temporary OpenGL context exists and is bound, so call the wglCreateContextAttribsARB function next.This function will return an OpenGL 3.3 Core context profile, bind it,
