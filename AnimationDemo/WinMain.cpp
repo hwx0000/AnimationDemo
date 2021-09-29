@@ -8,21 +8,21 @@
 #include <iostream>
 #include "Application.h"
 
-// ÕâÀïÊÇ°ïÖú¹¹½¨OpenGL ContextµÄÍ·ÎÄ¼şÀïÓÃµ½µÄÄÚÈİ
+// è¿™é‡Œæ˜¯å¸®åŠ©æ„å»ºOpenGL Contextçš„å¤´æ–‡ä»¶é‡Œç”¨åˆ°çš„å†…å®¹
 #pragma region From <wglext.h>
-	// ÕâĞ©³£Á¿°ïÖú¹¹½¨ÆğOpenGL 3.3 Core context, Ö»ÊÇ°ÑglewÀïµÄºËĞÄÄÚÈİÄÃÁË³öÀ´
+	// è¿™äº›å¸¸é‡å¸®åŠ©æ„å»ºèµ·OpenGL 3.3 Core context, åªæ˜¯æŠŠglewé‡Œçš„æ ¸å¿ƒå†…å®¹æ‹¿äº†å‡ºæ¥
 	#define WGL_CONTEXT_MAJOR_VERSION_ARB 0x2091 
 	#define WGL_CONTEXT_MINOR_VERSION_ARB 0x2092 
 	#define WGL_CONTEXT_FLAGS_ARB 0x2094 
 	#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001 
 	#define WGL_CONTEXT_PROFILE_MASK_ARB 0x9126 
 	
-	// ´ú±íÁËwglCreateContextAttribsARBµÄº¯ÊıÇ©Ãû, ÕâÀïÓĞ#define WINAPI      __stdcall
+	// ä»£è¡¨äº†wglCreateContextAttribsARBçš„å‡½æ•°ç­¾å, è¿™é‡Œæœ‰#define WINAPI      __stdcall
 	typedef HGLRC(WINAPI* PFNWGLCREATECONTEXTATTRIBSARBPROC) 
 	(HDC, HGLRC, const int*);
 #pragma endregion
 
-// ÕâÀïÊÇ°ïÖúÉèÖÃVSyncºÍSwapInterval(Ó¦¸ÃÊÇSwapBuffer)µÄÍ·ÎÄ¼şÀïÓÃµ½µÄÄÚÈİ
+// è¿™é‡Œæ˜¯å¸®åŠ©è®¾ç½®VSyncå’ŒSwapInterval(åº”è¯¥æ˜¯SwapBuffer)çš„å¤´æ–‡ä»¶é‡Œç”¨åˆ°çš„å†…å®¹
 #pragma region From <wgl.h>
 	typedef const char* (WINAPI* PFNWGLGETEXTENSIONSSTRINGEXTPROC) (void); 
 	typedef BOOL(WINAPI* PFNWGLSWAPINTERVALEXTPROC) (int); 
@@ -30,63 +30,67 @@
 #pragma endregion
 
 
-// Ê¹ÓÃËüÀ´´¦Àíwindow messages
-LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+// ä½¿ç”¨å®ƒæ¥å¤„ç†window messages
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM) { return NULL; }
 
-// Õû¸ö³ÌĞòÎ¨¶ş»áÓÃµ½µÄÈ«¾Ö±äÁ¿, ´ú±íApplicationºÍVAO
+// æ•´ä¸ªç¨‹åºå”¯äºŒä¼šç”¨åˆ°çš„å…¨å±€å˜é‡, ä»£è¡¨Applicationå’ŒVAO
 Application* gApplication = 0; 
 GLuint gVertexArrayObject = 0;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine, int iCmdShow)
 //int main(int* argc, char** argv)
 {
-	// 1. ´´½¨ApplicationÀà
+	// 1. åˆ›å»ºApplicationç±»
 	gApplication = new Application();
 
-	// 2. Ìî³äWNDCLASSEXÀàµÄÊµÀı, Õâ¸öÊ¾ÀıÓÃÓÚ´æ´¢´´½¨µÄwindowµÄÏà¹ØĞÅÏ¢
+	// 2. å¡«å……WNDCLASSEXç±»çš„å®ä¾‹, è¿™ä¸ªç¤ºä¾‹ç”¨äºå­˜å‚¨åˆ›å»ºçš„windowçš„ç›¸å…³ä¿¡æ¯
 	WNDCLASSEX wndclass;
-	wndclass.cbSize = sizeof(WNDCLASSEX);// cb´ú±ícount bytes
+	wndclass.cbSize = sizeof(WNDCLASSEX);// cbä»£è¡¨count bytes
 
-	// ÓÃflag±íÊ¾ÀàµÄstyle, wdnclassµÄflagÊÇ0011, µ±windowµÄË®Æ½»òÊúÖ±·½Ïòsize¸Ä±äÊ±
-	// Ê¹ÓÃRedrawÖØĞÂ»æÖÆ´°¿Ú
+	// ç”¨flagè¡¨ç¤ºç±»çš„style, wdnclassçš„flagæ˜¯0011, å½“windowçš„æ°´å¹³æˆ–ç«–ç›´æ–¹å‘sizeæ”¹å˜æ—¶
+	// ä½¿ç”¨Redrawé‡æ–°ç»˜åˆ¶çª—å£
 	wndclass.style = CS_HREDRAW | CS_VREDRAW;
 
-	// lpfnWndProc: Long Pointer to the Windows Procedure function. ÊÇÒ»¸öº¯ÊıÖ¸Õë
-	// WndProcÊÇÇ°ÃæÉùÃ÷µÄ, ±íÊ¾wndclass´æ´¢ÁËÒ»¸öµ÷ÓÃÏµÍ³º¯ÊıµÄº¯ÊıÖ¸Õë(ºÃÏñÄ¿Ç°ÊÇ¿ÕµÄ?)
+	// lpfnWndProc: Long Pointer to the Windows Procedure function. æ˜¯ä¸€ä¸ªå‡½æ•°æŒ‡é’ˆ
+	// WndProcæ˜¯å‰é¢å£°æ˜çš„, è¡¨ç¤ºwndclasså­˜å‚¨äº†ä¸€ä¸ªè°ƒç”¨ç³»ç»Ÿå‡½æ•°çš„å‡½æ•°æŒ‡é’ˆ(å¥½åƒç›®å‰æ˜¯ç©ºçš„?)
 	wndclass.lpfnWndProc = WndProc;
 
 	wndclass.cbClsExtra = 0;
 	wndclass.cbWndExtra = 0;
 
-	// h´ú±íhandle, ÕâÀïµÄInstanceÖ¸µÄÊÇÕû¸öApplicationµÄÊµÀı, ´ÓWinMainÀï´«½øÀ´µÄ
+	// hä»£è¡¨handle, è¿™é‡Œçš„InstanceæŒ‡çš„æ˜¯æ•´ä¸ªApplicationçš„å®ä¾‹, ä»WinMainé‡Œä¼ è¿›æ¥çš„
 	wndclass.hInstance = hInstance;
 
 	// hIcon is a handle to the application icon. 
-	// ±¾ÖÊÉÏÓ¦¸ÃÊÇ¸öÖ¸Ïò½á¹¹ÌåµÄÖ¸Õë, Õâ¸ö½á¹¹ÌåÖ»ÓĞÒ»¸öint×÷Îªpublic³ÉÔ±
-	// ÎÒ·¢ÏÖÕâÀïµÄHandle¶¼ÊÇÕâÃ´°ü×°µÄ, ±¾ÖÊ¾ÍÊÇÒ»¸öint
+	// æœ¬è´¨ä¸Šåº”è¯¥æ˜¯ä¸ªæŒ‡å‘ç»“æ„ä½“çš„æŒ‡é’ˆ, è¿™ä¸ªç»“æ„ä½“åªæœ‰ä¸€ä¸ªintä½œä¸ºpublicæˆå‘˜
+	// æˆ‘å‘ç°è¿™é‡Œçš„Handleéƒ½æ˜¯è¿™ä¹ˆåŒ…è£…çš„, æœ¬è´¨å°±æ˜¯ä¸€ä¸ªint
 	wndclass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 	
 	wndclass.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
 	
 	// hCursor is a handle to the mouse cursor.
-	// hCursorµÄÀàĞÍÆäÊµ¾ÍÊÇHICON
+	// hCursorçš„ç±»å‹å…¶å®å°±æ˜¯HICON
 	wndclass.hCursor = LoadCursor(NULL, IDC_ARROW);
 	
 	// hbrBackground is a handle to the brush which will be used to fill the window background. 
 	// We used pre-defined window color to paint background of our window.
-	// h´ú±íhandle, br´ú±íbrush, ´ú±íÓÃÓÚÌî³äWindow±³¾°µÄbrush, ºÃÏñ¾ÍÊÇ´°¿ÚµÄ±³¾°ÑÕÉ«
-	// COLOR_BTNFACE´ú±íÒ»ÖÖÑÕÉ«ÀàĞÍ
+	// hä»£è¡¨handle, brä»£è¡¨brush, ä»£è¡¨ç”¨äºå¡«å……WindowèƒŒæ™¯çš„brush, å¥½åƒå°±æ˜¯çª—å£çš„èƒŒæ™¯é¢œè‰²
+	// COLOR_BTNFACEä»£è¡¨ä¸€ç§é¢œè‰²ç±»å‹
 	wndclass.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
 	
-	// ´ú±ímenuÃû, ÔİÊ±²»ÖªµÀÊ²Ã´ÊÇmenu
+	// ä»£è¡¨menuå, æš‚æ—¶ä¸çŸ¥é“ä»€ä¹ˆæ˜¯menu
 	wndclass.lpszMenuName = 0;
 	
-	// ´ú±íÀàÃû, lpszClassNameÊÇ¸öÖ¸Ïòconst stringµÄÖ¸Õë
+	// ä»£è¡¨ç±»å, lpszClassNameæ˜¯ä¸ªæŒ‡å‘const stringçš„æŒ‡é’ˆ
 	wndclass.lpszClassName = "Win32 Game Window";
+
+	// Win32çš„çª—å£ç™»è®°
 	RegisterClassEx(&wndclass);
 
-	int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-	int screenHeight = GetSystemMetrics(SM_CYSCREEN);
+	// è·å–å±å¹•å°ºå¯¸, æˆ‘è¿™ä¸ªç”µè„‘è¿”å›çš„æ˜¯1920*1080
+	int screenWidth = GetSystemMetrics(SM_CXSCREEN);//CX
+	int screenHeight = GetSystemMetrics(SM_CYSCREEN);//CY
+
 	int clientWidth = 800;
 	int clientHeight = 600;
 	RECT windowRect;
@@ -138,9 +142,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 }
 
 #if _DEBUG
-// Èç¹ûÔÚDebug×´Ì¬ÏÂ, °ÑsubsystemÉèÖÃµ½console
-// ÄÜÔÚ¿ªÆôMain´°¿ÚµÄÍ¬Ê±, ÔÚmainº¯ÊıÀïµ÷ÓÃWinMainº¯Êı
-// ÔÙ¿ªÆôÒ»¸öWin32µÄ´°¿Ú
+// å¦‚æœåœ¨DebugçŠ¶æ€ä¸‹, æŠŠsubsystemè®¾ç½®åˆ°console
+// èƒ½åœ¨å¼€å¯Mainçª—å£çš„åŒæ—¶, åœ¨mainå‡½æ•°é‡Œè°ƒç”¨WinMainå‡½æ•°
+// å†å¼€å¯ä¸€ä¸ªWin32çš„çª—å£
 #pragma comment(linker, "/subsystem:console")
 int main(int argc, const char** argv)
 {
