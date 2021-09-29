@@ -94,14 +94,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	int clientWidth = 800;
 	int clientHeight = 600;
 	RECT windowRect;
-	// 四个值代表离屏幕四个方向上的间距, 顺序是左上右下
+	// 四个值代表离屏幕四个方向上的间距, 顺序是左上右下, 这样写是为了让窗口在屏幕正中心
 	SetRect(&windowRect, (screenWidth / 2) - (clientWidth / 2),
 		(screenHeight / 2) - (clientHeight / 2),
 		(screenWidth / 2) + (clientWidth / 2),
 		(screenHeight / 2) + (clientHeight / 2));
 
+	// WS的意思是Window Style, 这些Flag都是一些窗口UI的设置
+	// WS_MINIMIZEBOX: 窗口有最小化的按钮
+	// WS_SYSMENU: The window has a window menu on its title bar
+	DWORD style = (WS_OVERLAPPED | WS_CAPTION |
+			WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
+	// | WS_THICKFRAME to resize
+
 	// 调整Window的Rect
-	AdjustWindowRectEx(&windowRect, wndclass.style, FALSE, 0);
+	AdjustWindowRectEx(&windowRect, style, FALSE, 0);
 	// 根据WindowInfo和rect创建真正的Window
 	HWND hwnd = CreateWindowEx(0, wndclass.lpszClassName, "Game Window", wndclass.style, windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom -
 		windowRect.top, NULL, NULL, hInstance, szCmdLine);
@@ -123,7 +130,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	// 设置device context的pfd
 	SetPixelFormat(hdc, pixelFormat, &pfd);
 
-	// 7.create a temporary OpenGL context using wglCreateContext
+	// create a temporary OpenGL context using wglCreateContext
 	HGLRC tempRC = wglCreateContext(hdc);// 创建Render Context
 	wglMakeCurrent(hdc, tempRC);// 绑定到device上
 	// PFNWGLCREATECONTEXTATTRIBSARBPROC代表了wglCreateContextAttribsARB的函数签名
@@ -131,16 +138,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	// 通过wglGetProcAddress对函数寻址, 然后赋值
 	wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateCon textAttribsARB");
 
-	//8. A temporary OpenGL context exists and is bound, so call the wglCreateContextAttribsARB function next.This function will return an OpenGL 3.3 Core context profile, bind it,
-	//and delete the legacy context :
+	// A temporary OpenGL context exists and is bound, so call the wglCreateContextAttribsARB function next.
+	// This function will return an OpenGL 3.3 Core context profile, bind it,
+	// and delete the legacy context :
+	// 这是创建OpenGL Contex的相关参数
 	const int attribList[] = { WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
 		WGL_CONTEXT_MINOR_VERSION_ARB, 3,
 		WGL_CONTEXT_FLAGS_ARB, 0,
 		WGL_CONTEXT_PROFILE_MASK_ARB,
 		WGL_CONTEXT_CORE_PROFILE_BIT_ARB,0, };
+	// 调用获取来的函数指针
 	HGLRC hglrc = wglCreateContextAttribsARB(hdc, 0, attribList);
+	// 重新绑定到Null的Render Context上
 	wglMakeCurrent(NULL, NULL);
+	// 删除遗留的临时Render Context
 	wglDeleteContext(tempRC);
+	// 绑定到新创建的RenderContext上
 	wglMakeCurrent(hdc, hglrc);
 
 	if (!gladLoadGL()) { std::cout << "Could not initialize GLAD\n"; }
