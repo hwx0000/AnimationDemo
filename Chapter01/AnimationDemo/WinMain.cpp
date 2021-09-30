@@ -31,7 +31,7 @@
 
 
 // 使用它来处理window messages
-LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM) { return NULL; }
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 
 // 整个程序唯二会用到的全局变量, 代表Application和VAO
 Application* gApplication = 0; 
@@ -136,7 +136,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	// PFNWGLCREATECONTEXTATTRIBSARBPROC代表了wglCreateContextAttribsARB的函数签名
 	PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = NULL;// 创建一个空的函数指针
 	// 通过wglGetProcAddress对函数寻址, 然后赋值
-	wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateCon textAttribsARB");
+	wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
 
 	// A temporary OpenGL context exists and is bound, so call the wglCreateContextAttribsARB function next.
 	// This function will return an OpenGL 3.3 Core context profile, bind it,
@@ -198,26 +198,33 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 	MSG msg;
 	while (true)
 	{
+		// use the PeekMessage function to examine a message queue during a lengthy operation
+		// 检查消息队列, 获取外部输入的消息, 看看是不是要关闭窗口
 		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
+			// 如果找到退出窗口的消息, 则退出循环, WM应该是Window Message的意思
 			if (msg.message == WM_QUIT)
 				break;
 
-			TranslateMessage(&msg);			DispatchMessage(&msg);
-		}		DWORD thisTick = GetTickCount();
+			// TranslateMessage produces WM_CHAR messages only for keys that 
+			// are mapped to ASCII characters by the keyboard driver.
+			// 如果这个消息不是退出的消息, 则会把这个消息, 转化为键盘驱动上的Ascii字符, 总之就是翻译一下
+			TranslateMessage(&msg);			// Dispatches a message to a window procedure			// 分配到对应的执行程序上, 应该就是现在这个程序, 然后下一帧又会判断这个消息, 是不是退出的msg			DispatchMessage(&msg);
+		}		// 算DeltaTime, 执行Update函数
+		DWORD thisTick = GetTickCount();
 		float dt = float(thisTick - lastTick) * 0.001f;
 		lastTick = thisTick;
 		if (gApplication != 0)
 		{
 			gApplication->Update(dt);
-		}		if (gApplication != 0)
+		}		// 调用绘制的东西		if (gApplication != 0)
 		{
 			RECT clientRect;
 			GetClientRect(hwnd, &clientRect);
 			clientWidth = clientRect.right - clientRect.left;
 			clientHeight = clientRect.bottom - clientRect.top;
 			glViewport(0, 0, clientWidth, clientHeight);
-			glEnable(GL_DEPTH_TEST);
+			glEnable(GL_DEPTH_TEST);// 讲道理, 这些东西可以应该放到Loop外
 			glEnable(GL_CULL_FACE);
 			glPointSize(5.0f);
 			glBindVertexArray(gVertexArrayObject);
@@ -225,13 +232,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 			float aspect = (float)clientWidth / (float)clientHeight;
 			gApplication->Render(aspect);
-		}		if (gApplication != 0)
+		}		// 最后调用SwapBuffers		if (gApplication != 0)
 		{
 			SwapBuffers(hdc);
 			if (vsynch != 0)
 				glFinish();
 		}
-	}// End Game Loop	if (gApplication != 0)
+	}// End Game Loop	// Clear	if (gApplication != 0)
 	{
 		std::cout << "Expectedapplication to be null on exit\n";
 		delete gApplication;
@@ -256,3 +263,47 @@ int main(int argc, const char** argv)
 #pragma comment(lib, "opengl32.lib")
 
 
+LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch (iMsg)
+	{
+	case WM_CLOSE:
+		// 关闭窗口时, 释放Application, 摧毁窗口
+		if (gApplication != 0)
+		{
+			gApplication->Shutdown();
+			gApplication = 0;
+			DestroyWindow(hwnd);// emit a destroy window message
+		}
+		else
+			std::cout << "Already shut down!\n";
+		break;
+	case WM_DESTROY:
+		// 上面发出的DestroyWindow的msg应该会走到这里, 用于摧毁OpenGL Context和释放VAO对象
+		if (gVertexArrayObject != 0)
+		{
+			HDC hdc = GetDC(hwnd);
+			HGLRC hglrc = wglGetCurrentContext();
+
+			glBindVertexArray(0);
+			glDeleteVertexArrays(1, &gVertexArrayObject);
+			gVertexArrayObject = 0;
+
+			wglMakeCurrent(NULL, NULL);
+			wglDeleteContext(hglrc);
+			ReleaseDC(hwnd, hdc);
+
+			PostQuitMessage(0);
+		}
+		else
+			std::cout << "Got multiple destroy messages\n";
+		break;
+	// The paint and erase background messages are safe to ignore since OpenGL is managing rendering to the window
+	case WM_PAINT:
+	case WM_ERASEBKGND:
+		return 0;
+	}
+
+	// If the message received isn't one of the messages already handled, forward it to the default window message function :
+	return DefWindowProc(hwnd, iMsg, wParam, lParam);
+}
