@@ -1,7 +1,7 @@
 #include "mat4.h"
 #include <cmath>
 #include <iostream>
-// 16¸ö¸¡µãÊýµÄÅÐ¶Ï
+// 16ä¸ªæµ®ç‚¹æ•°çš„åˆ¤æ–­
 bool operator==(const mat4& a, const mat4& b)
 {
 	for (int i = 0; i < 16; ++i)
@@ -17,7 +17,7 @@ bool operator!=(const mat4& a, const mat4& b)
 	return !(a == b);
 }
 
-// ¾ØÕó³ËÒÔ¸¡µãÊý, ÐèÒª×¢Òâ²ÎÊýÎªconst&
+// çŸ©é˜µä¹˜ä»¥æµ®ç‚¹æ•°, éœ€è¦æ³¨æ„å‚æ•°ä¸ºconst&
 mat4 operator*(const mat4& m, float f) {
 	return mat4(
 		m.xx * f, m.xy * f, m.xz * f, m.xw * f,
@@ -36,8 +36,8 @@ mat4 operator+(const mat4& a, const mat4& b) {
 	);
 }
 
-// ´´½¨Ò»¸ö¼òµ¥µÄºê, °ïÖú¼ÆËã, ×ÜÖ®ÊÇÈ¡µÃ¾ØÕóaµÄµÚmÐÐºÍ¾ØÕóbµÄµÚnÁÐµÄÏà³ËµÄ½á¹û
-// ×¢ÒâÕâÀïµÄrÐÐºÍcÁÐ, ¶ÔÓ¦µÄÔªËØÓ¦¸ÃÊÇc*4+r(¶ø²»ÊÇr*4+c)
+// åˆ›å»ºä¸€ä¸ªç®€å•çš„å®, å¸®åŠ©è®¡ç®—, æ€»ä¹‹æ˜¯å–å¾—çŸ©é˜µaçš„ç¬¬mè¡Œå’ŒçŸ©é˜µbçš„ç¬¬nåˆ—çš„ç›¸ä¹˜çš„ç»“æžœ
+// æ³¨æ„è¿™é‡Œçš„rè¡Œå’Œcåˆ—, å¯¹åº”çš„å…ƒç´ åº”è¯¥æ˜¯c*4+r(è€Œä¸æ˜¯r*4+c)
 #define M4D(aRow, bCol) \
     a.v[0 * 4 + aRow] * b.v[bCol * 4 + 0] + \
     a.v[1 * 4 + aRow] * b.v[bCol * 4 + 1] + \
@@ -46,8 +46,8 @@ mat4 operator+(const mat4& a, const mat4& b) {
 
 mat4 operator*(const mat4& a, const mat4& b) {
 	return mat4(
-		// ¹¹Ôìº¯ÊýÊÇ°´ÁÐÏòÁ¿ÊäÈëµÄ
-		// ÐÂ¾ØÕóµÄµÚÒ»ÁÐ, ÊÇaµÄÃ¿Ò»ÐÐÓëbµÄµÚÒ»ÁÐµÄM4DµÄ½á¹û
+		// æž„é€ å‡½æ•°æ˜¯æŒ‰åˆ—å‘é‡è¾“å…¥çš„
+		// æ–°çŸ©é˜µçš„ç¬¬ä¸€åˆ—, æ˜¯açš„æ¯ä¸€è¡Œä¸Žbçš„ç¬¬ä¸€åˆ—çš„M4Dçš„ç»“æžœ
 		M4D(0, 0), M4D(1, 0), M4D(2, 0), M4D(3, 0), // Column 0
 		M4D(0, 1), M4D(1, 1), M4D(2, 1), M4D(3, 1), // Column 1
 		M4D(0, 2), M4D(1, 2), M4D(2, 2), M4D(3, 2), // Column 2
@@ -55,14 +55,14 @@ mat4 operator*(const mat4& a, const mat4& b) {
 	);
 }
 
-// Í¬ÉÏ, Õâ´ÎÊÇ×öÁË¾ØÕóµÚmRowÐÐÓëÒ»¸övec4Ïà³ËµÄºê
+// åŒä¸Š, è¿™æ¬¡æ˜¯åšäº†çŸ©é˜µç¬¬mRowè¡Œä¸Žä¸€ä¸ªvec4ç›¸ä¹˜çš„å®
 #define M4V4D(mRow, x, y, z, w) \
     x * m.v[0 * 4 + mRow] + \
     y * m.v[1 * 4 + mRow] + \
     z * m.v[2 * 4 + mRow] + \
     w * m.v[3 * 4 + mRow]
 
-// 4*4¾ØÕó³ËÒÔvec4Ê±, ×ó±ß¾ØÕóµÄÃ¿Ò»ÐÐ»áÈ¥³ËÒÔv
+// 4*4çŸ©é˜µä¹˜ä»¥vec4æ—¶, å·¦è¾¹çŸ©é˜µçš„æ¯ä¸€è¡Œä¼šåŽ»ä¹˜ä»¥v
 vec4 operator*(const mat4& m, const vec4& v) {
 	return vec4(
 		M4V4D(0, v.x, v.y, v.z, v.w),
@@ -72,7 +72,7 @@ vec4 operator*(const mat4& m, const vec4& v) {
 	);
 }
 
-// °Ñvec3µ±vec4´¦Àí, È»ºóÓÃ·µ»Ø¾ØÕó³ËÒÔËüµÄ½á¹û, ×¢Òâ3DÏòÁ¿×ªÎª4DÏòÁ¿Ê±, wÎª0
+// æŠŠvec3å½“vec4å¤„ç†, ç„¶åŽç”¨è¿”å›žçŸ©é˜µä¹˜ä»¥å®ƒçš„ç»“æžœ, æ³¨æ„3Då‘é‡è½¬ä¸º4Då‘é‡æ—¶, wä¸º0
 vec3 transformVector(const mat4& m, const vec3& v) {
 	return vec3(
 		M4V4D(0, v.x, v.y, v.z, 0.0f),
@@ -81,30 +81,21 @@ vec3 transformVector(const mat4& m, const vec3& v) {
 	);
 }
 
-// °Ñvec3µ±vec4´¦Àí, È»ºóÓÃ·µ»Ø¾ØÕó³ËÒÔËüµÄ½á¹û, ×¢Òâ3DÏòÁ¿×ªÎª4DÏòÁ¿Ê±, wÎª0
-vec3 transformVector(const mat4& m, const vec3& v)
-{
-	// ÆäÊµ¾ÍÊÇÈ¡¾ØÕóµÄÇ°ÈýÐÐ¸÷×ÔÓë(v, 0.0f)µÄ³Ë»ý½á¹û
-	return vec3(M4V4D(0, v.x, v.y, v.z, 0.0f),// ´ËÖµÊÇmµÄµÚÒ»ÐÐÓë(v, 0.0f)³Ë»ýµÄ½á¹û
-		M4V4D(1, v.x, v.y, v.z, 0.0f),
-		M4V4D(2, v.x, v.y, v.z, 0.0f));
-}
-
-// ×¢Òâ, 3DµÄµã×ªÎª4DµÄµãÊ±, wÎª1 (µ«ÊÇ²»¹ÜwÎª1»¹ÊÇ0, ·µ»ØµÄ½á¹ûºÃÏñÃ»ÓÐÈÎºÎÓ°Ïì?)
-// (ËùÒÔºÍtransformVectorµÄÇø±ðÔÚÄÄ)
+// æ³¨æ„, 3Dçš„ç‚¹è½¬ä¸º4Dçš„ç‚¹æ—¶, wä¸º1 (ä½†æ˜¯ä¸ç®¡wä¸º1è¿˜æ˜¯0, è¿”å›žçš„ç»“æžœå¥½åƒæ²¡æœ‰ä»»ä½•å½±å“?)
+// (æ‰€ä»¥å’ŒtransformVectorçš„åŒºåˆ«åœ¨å“ª)
 vec3 transformPoint(const mat4& m, const vec3& v)
 {
-	// ÆäÊµ¾ÍÊÇÈ¡¾ØÕóµÄÇ°ÈýÐÐ¸÷×ÔÓë(v, 1.0f)µÄ³Ë»ý½á¹û
+	// å…¶å®žå°±æ˜¯å–çŸ©é˜µçš„å‰ä¸‰è¡Œå„è‡ªä¸Ž(v, 1.0f)çš„ä¹˜ç§¯ç»“æžœ
 	return vec3(M4V4D(0, v.x, v.y, v.z, 1.0f),
 		M4V4D(1, v.x, v.y, v.z, 1.0f),
 		M4V4D(2, v.x, v.y, v.z, 1.0f));
 }
 
-// ½»»»Á½¸ö¸¡µãÊýµÄºê
+// äº¤æ¢ä¸¤ä¸ªæµ®ç‚¹æ•°çš„å®
 #define M4SWAP(x, y) \
     {float t = x; x = y; y = t; }
 
-// ½«¾ØÕóN±äÎª×ªÖÃ¾ØÕó
+// å°†çŸ©é˜µNå˜ä¸ºè½¬ç½®çŸ©é˜µ
 void transpose(mat4& m) {
 	M4SWAP(m.yx, m.xy);
 	M4SWAP(m.zx, m.xz);
@@ -114,7 +105,7 @@ void transpose(mat4& m) {
 	M4SWAP(m.tz, m.zw);
 }
 
-// Çó¾ØÕóNµÄ×ªÖÃ¾ØÕó
+// æ±‚çŸ©é˜µNçš„è½¬ç½®çŸ©é˜µ
 mat4 transposed(const mat4& m) {
 	return mat4(
 		m.xx, m.yx, m.zx, m.tx,
@@ -124,13 +115,13 @@ mat4 transposed(const mat4& m) {
 	);
 }
 
-// Ó¦¸ÃÊÇËã³ö4*4¾ØÕóÀïµÄÈýÐÐºÍÈýÁÐ×é³ÉµÄ×Ó¾ØÕóµÄÐÐÁÐÊ½
+// åº”è¯¥æ˜¯ç®—å‡º4*4çŸ©é˜µé‡Œçš„ä¸‰è¡Œå’Œä¸‰åˆ—ç»„æˆçš„å­çŸ©é˜µçš„è¡Œåˆ—å¼
 #define M4_3X3MINOR(c0, c1, c2, r0, r1, r2) \
     (m.v[c0 * 4 + r0] * (m.v[c1 * 4 + r1] * m.v[c2 * 4 + r2] - m.v[c1 * 4 + r2] * m.v[c2 * 4 + r1]) - \
      m.v[c1 * 4 + r0] * (m.v[c0 * 4 + r1] * m.v[c2 * 4 + r2] - m.v[c0 * 4 + r2] * m.v[c2 * 4 + r1]) + \
      m.v[c2 * 4 + r0] * (m.v[c0 * 4 + r1] * m.v[c1 * 4 + r2] - m.v[c0 * 4 + r2] * m.v[c1 * 4 + r1]))
 
-// Ëã³ö4*4¾ØÕóµÄÐÐÁÐÊ½
+// ç®—å‡º4*4çŸ©é˜µçš„è¡Œåˆ—å¼
 float determinant(const mat4& m) {
 	return  m.v[0] * M4_3X3MINOR(1, 2, 3, 1, 2, 3)
 		- m.v[4] * M4_3X3MINOR(0, 2, 3, 1, 2, 3)
@@ -138,7 +129,7 @@ float determinant(const mat4& m) {
 		- m.v[12] * M4_3X3MINOR(0, 1, 2, 1, 2, 3);
 }
 
-// ·µ»Ø°éËæ¾ØÕóA*
+// è¿”å›žä¼´éšçŸ©é˜µA*
 mat4 adjugate(const mat4& m) {
 	// Cofactor(M[i, j]) = Minor(M[i, j]] * pow(-1, i + j)
 	mat4 cofactor;
@@ -166,10 +157,10 @@ mat4 adjugate(const mat4& m) {
 	return transposed(cofactor);
 }
 
-// ·µ»ØÄæ¾ØÕó
+// è¿”å›žé€†çŸ©é˜µ
 mat4 inverse(const mat4& m)
 {
-	// ÏÈËã¾ØÕóµÄÐÐÁÐÊ½
+	// å…ˆç®—çŸ©é˜µçš„è¡Œåˆ—å¼
 	float det = determinant(m);
 
 	if (det == 0.0f) 
@@ -178,14 +169,14 @@ mat4 inverse(const mat4& m)
 		return mat4();
 	}
 
-	// ¼ÆËãA*°éËæ¾ØÕó
+	// è®¡ç®—A*ä¼´éšçŸ©é˜µ
 	mat4 adj = adjugate(m);
 
 	// A^-1 = A*/(|A|)
 	return adj * (1.0f / det);
 }
 
-// °Ñm±äÎªËüµÄÄæ¾ØÕó
+// æŠŠmå˜ä¸ºå®ƒçš„é€†çŸ©é˜µ
 void invert(mat4& m)
 {
 	float det = determinant(m);
@@ -199,7 +190,7 @@ void invert(mat4& m)
 	m = adjugate(m) * (1.0f / det);
 }
 
-// ´´½¨frustum´ú±íµÄÍ¸ÊÓÍ¶Ó°¾ØÕó
+// åˆ›å»ºfrustumä»£è¡¨çš„é€è§†æŠ•å½±çŸ©é˜µ
 mat4 frustum(float l, float r, float b, float t, float n, float f)
 {
 	if (l == r || t == b || n == f) 
@@ -214,17 +205,17 @@ mat4 frustum(float l, float r, float b, float t, float n, float f)
 		0, 0, (-2 * f * n) / (f - n), 0);
 }
 
-// ¸üÖ±¹ÛµÄ´´½¨Í¶Ó°¾ØÕó, µ×²ã»¹ÊÇµ÷ÓÃfrustumº¯Êý
+// æ›´ç›´è§‚çš„åˆ›å»ºæŠ•å½±çŸ©é˜µ, åº•å±‚è¿˜æ˜¯è°ƒç”¨frustumå‡½æ•°
 mat4 perspective(float fov, float aspect, float znear, float zfar) 
 {
-	// ¸ù¾ÝfovºÍaspectËã³öfrustumµÄ²ÎÊý
+	// æ ¹æ®fovå’Œaspectç®—å‡ºfrustumçš„å‚æ•°
 	float ymax = znear * tanf(fov * 3.14159265359f / 360.0f);
 	float xmax = ymax * aspect;
 
 	return frustum(-xmax, xmax, -ymax, ymax, znear, zfar);
 }
 
-// Õý½»Í¶Ó°
+// æ­£äº¤æŠ•å½±
 mat4 ortho(float l, float r, float b, float t, float n, float f)
 {
 	if (l == r || t == b || n == f)
@@ -236,21 +227,21 @@ mat4 ortho(float l, float r, float b, float t, float n, float f)
 		-((r + l) / (r - l)), -((t + b) / (t - b)), -((f + n) / (f - n)), 1);
 }
 
-// positionÊÇÏà»úÎ»ÖÃ, targetÊÇÏà»ú¿´µÄµã
+// positionæ˜¯ç›¸æœºä½ç½®, targetæ˜¯ç›¸æœºçœ‹çš„ç‚¹
 mat4 lookAt(const vec3& position, const vec3& target, const vec3& up) 
 {
-	// Ïà»úÊ¼ÖÕÔÚÊÀ½ç×ø±êÏµµÄ0,0,0µã, ¿´µÄ·½ÏòÎªZÖá¸º·½Ïò
+	// ç›¸æœºå§‹ç»ˆåœ¨ä¸–ç•Œåæ ‡ç³»çš„0,0,0ç‚¹, çœ‹çš„æ–¹å‘ä¸ºZè½´è´Ÿæ–¹å‘
 
-	// f´ú±í¿´ÏòµÄÄ¿±êµ½Ïà»úµÄ·½Ïò, Ò²¾ÍÊÇÏà»ú¿´¹ýÈ¥µÄ¸º·½Ïò
-	vec3 f = normalized(target - position) * -1.0f;// ÐÂµÄÏà»ú×ø±êÏµµÄzÖáÓ¦¸ÃÊÇf
-	vec3 r = cross(up, f); // Right handed ÐÂµÄÏà»ú×ø±êÏµµÄxÖáÓ¦¸ÃÊÇr
+	// fä»£è¡¨çœ‹å‘çš„ç›®æ ‡åˆ°ç›¸æœºçš„æ–¹å‘, ä¹Ÿå°±æ˜¯ç›¸æœºçœ‹è¿‡åŽ»çš„è´Ÿæ–¹å‘
+	vec3 f = normalized(target - position) * -1.0f;// æ–°çš„ç›¸æœºåæ ‡ç³»çš„zè½´åº”è¯¥æ˜¯f
+	vec3 r = cross(up, f); // Right handed æ–°çš„ç›¸æœºåæ ‡ç³»çš„xè½´åº”è¯¥æ˜¯r
 	if (r == vec3(0, 0, 0))
 		return mat4(); // Error
 	
 	normalize(r);
-	// ÎªÉ¶»¹ÒªcrossÒ»´Î, ÊäÈëµÄupÖ±½Ónormalize²»¾ÍÐÐÁËÃ´?
-	// ÕâÊÇÒòÎª, ²»¿ÉÒÔ±£Ö¤Ïà»ú¿´µ½·½ÏòºÍUp·½ÏòÕýºÃÊÇÕý½»µÄ, ¶øÇÒcross(up, f)²¢²»ÐèÒª
-	// Ïà»ú¿´µÄ·½ÏòºÍUp·½ÏòÊÇÕý½»µÄ, Ö»ÒªÈ¡µÃ´¹Ö±ÓëÕâ¸öÃæµÄÏòÁ¿×÷Îªr¾ÍÐÐÁË
+	// ä¸ºå•¥è¿˜è¦crossä¸€æ¬¡, è¾“å…¥çš„upç›´æŽ¥normalizeä¸å°±è¡Œäº†ä¹ˆ?
+	// è¿™æ˜¯å› ä¸º, ä¸å¯ä»¥ä¿è¯ç›¸æœºçœ‹åˆ°æ–¹å‘å’ŒUpæ–¹å‘æ­£å¥½æ˜¯æ­£äº¤çš„, è€Œä¸”cross(up, f)å¹¶ä¸éœ€è¦
+	// ç›¸æœºçœ‹çš„æ–¹å‘å’ŒUpæ–¹å‘æ˜¯æ­£äº¤çš„, åªè¦å–å¾—åž‚ç›´ä¸Žè¿™ä¸ªé¢çš„å‘é‡ä½œä¸ºrå°±è¡Œäº†
 	vec3 u = normalized(cross(f, r)); // Right handed
 
 	vec3 t = vec3(-dot(r, position),
