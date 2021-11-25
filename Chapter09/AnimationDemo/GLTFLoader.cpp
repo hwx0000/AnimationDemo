@@ -100,6 +100,7 @@ namespace GLTFHelpers
 			cgltf_accessor_read_float(&inAccessor, i, &outScalars[i * inComponentCount], inComponentCount);
 	}
 
+	// 核心函数, 从channel里获取Track
 	// This function does most of the heavy lifting. It converts a glTF animation channel into a
     // VectorTrack or a QuaternionTrack.
 	// animation channel可以参考后面的附录, 本质上就是一个记录sampler和target joint引用的wrapper
@@ -123,6 +124,9 @@ namespace GLTFHelpers
 		std::vector<float> timelineFloats;
 		GetScalarValues(timelineFloats, 1, *sampler.input);
 
+		// output数组是已经在sampler里算好的
+		// 如果是Constant和Linear的情况下, 它就是个Property的数组
+		// 如果是Cubic情况下, 它是个Property、Property对应的mIn和mOut三个属性组成的对象的数组
 		std::vector<float> valueFloats;
 		GetScalarValues(valueFloats, N, *sampler.output);
 
@@ -134,11 +138,16 @@ namespace GLTFHelpers
 		for (unsigned int i = 0; i < numFrames; ++i) 
 		{
 			int baseIndex = i * numberOfValuesPerFrame;
+			// 获取frame的引用, 这里面的值应该是空的
 			Frame<N>& frame = inOutTrack[i];
 			int offset = 0;
 
+			// sapmler的Input数组里获取每个关键帧的时间
 			frame.mTime = timelineFloats[i];
 
+			// 遍历Property的每个float component
+			
+			// 只有Cubic的采样情况下, 才需要mIn和mOut数据
 			for (int component = 0; component < N; ++component) 
 				frame.mIn[component] = isSamplerCubic ? valueFloats[baseIndex + offset++] : 0.0f;
 			
