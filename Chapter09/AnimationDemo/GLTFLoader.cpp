@@ -100,7 +100,7 @@ namespace GLTFHelpers
 			cgltf_accessor_read_float(&inAccessor, i, &outScalars[i * inComponentCount], inComponentCount);
 	}
 
-	// 核心函数, 从channel里获取Track
+	// 核心函数, 从channel的sampler里获取Track, 其实只用到了channel的input, 没有用到output
 	// This function does most of the heavy lifting. It converts a glTF animation channel into a
     // VectorTrack or a QuaternionTrack.
 	// animation channel可以参考后面的附录, 本质上就是一个记录sampler和target joint引用的wrapper
@@ -186,7 +186,7 @@ Pose LoadRestPose(cgltf_data* data)
 	return result;
 }
 
-// 接口2: 遍历nodes数组，取其name，存到vector即可
+// 接口2: 遍历nodes数组, 取其name, 存到vector即可
 std::vector<std::string> LoadJointNames(cgltf_data* data) 
 {
 	unsigned int boneCount = (unsigned int)data->nodes_count;
@@ -207,27 +207,44 @@ std::vector<std::string> LoadJointNames(cgltf_data* data)
 	return result;
 }
 
+// 接口3: 从data里遍历读取clip, 遍历里面的channel, 每个Joint对应Clip里的一个Joint的TransformTrack
+// 从而可以一一填到我这边数据的Track里
 std::vector<Clip> LoadAnimationClips(cgltf_data* data) 
 {
+	// 获取clips的数目
 	unsigned int numClips = (unsigned int)data->animations_count;
+	// 获取joints的数目
 	unsigned int numNodes = (unsigned int)data->nodes_count;
 
 	std::vector<Clip> result;
 	result.resize(numClips);
 
+	// 遍历Clip数据
 	for (unsigned int i = 0; i < numClips; ++i) 
 	{
+		// data->animations相当于clips的数组, 这里就是挖数据了
 		result[i].SetName(data->animations[i].name);
 
+		// 遍历clips里的每个Channel, 前面提过了channel是个通道, 一端是一个property对应Curve的sampler
+		// 另一端是apply property的joint, 每个Channel对应动画Clip里的一条Property Curve
 		unsigned int numChannels = (unsigned int)data->animations[i].channels_count;
+		// 遍历所有curve
 		for (unsigned int j = 0; j < numChannels; ++j) 
 		{
 			cgltf_animation_channel& channel = data->animations[i].channels[j];
+			// channel的Output是Joint Node
 			cgltf_node* target = channel.target_node;
 			int nodeId = GLTFHelpers::GetNodeIndex(target, data->nodes, numNodes);
+
+			// 看Curve是Transform的哪种类型
 			if (channel.target_path == cgltf_animation_path_type_translation) 
 			{
+				// 获取对应clip的joint的nodeId对应的joint的TransformTrack
+				// 之前实现过Clip类的[]重载, 会返回一个TransformTrack&
+				// 这里获取的track应该还没有数据
 				VectorTrack& track = result[i][nodeId].GetPositionTrack();
+				// 使用Helper函数, 把这个channel里的数据提取出来, 把时间数组和Property数组
+				// 甚至(mIn和mOut数组)存到track里
 				GLTFHelpers::TrackFromChannel<vec3, 3>(track, channel);
 			}
 			else if (channel.target_path == cgltf_animation_path_type_scale) 
