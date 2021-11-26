@@ -125,6 +125,7 @@
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Attribute.h" />
+    <ClInclude Include="Clip.h" />
     <ClInclude Include="Draw.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="glad.h" />
@@ -133,6 +134,7 @@
     <ClInclude Include="Interpolation.h" />
     <ClInclude Include="khrplatform.h" />
     <ClInclude Include="mat4.h" />
+    <ClInclude Include="Pose.h" />
     <ClInclude Include="quat.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Track.h" />
@@ -148,12 +150,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Attribute.cpp" />
+    <ClCompile Include="Clip.cpp" />
     <ClCompile Include="Draw.cpp" />
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="GLTFLoader.cpp" />
     <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="mat4.cpp" />
+    <ClCompile Include="Pose.cpp" />
     <ClCompile Include="quat.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Track.cpp" />

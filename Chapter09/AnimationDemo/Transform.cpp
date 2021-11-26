@@ -83,3 +83,15 @@ Transform mat4ToTransform(const mat4& m)
 		scaleSkewMat.v[10]);
 	return out;
 }
+
+bool operator==(const Transform& a, const Transform& b) 
+{
+	return a.position == b.position &&
+		a.rotation == b.rotation &&
+		a.scale == b.scale;
+}
+
+bool operator!=(const Transform& a, const Transform& b) 
+{
+	return !(a == b);
+}

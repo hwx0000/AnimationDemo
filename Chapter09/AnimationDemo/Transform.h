@@ -26,4 +26,6 @@ Transform inverse(const Transform& t);
 Transform mix(const Transform& a, const Transform& b, float t);
 mat4 transformToMat4(const Transform& t);
 Transform mat4ToTransform(const mat4& m);
+bool operator==(const Transform& a, const Transform& b);
+bool operator!=(const Transform& a, const Transform& b);
 #endif
