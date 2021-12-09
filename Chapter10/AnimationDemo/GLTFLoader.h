@@ -7,6 +7,8 @@
 #include <vector>
 #include <string>
 #include "Skeleton.h"
+#include "Mesh.h"
+
 
 namespace GLTFHelpers
 {
@@ -26,4 +28,5 @@ Pose LoadBindPose(cgltf_data* data);
 
 Skeleton LoadSkeleton(cgltf_data* data);
 
+std::vector<Mesh> LoadMeshes(cgltf_data* data);// 一个全局函数
 #endif

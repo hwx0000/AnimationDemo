@@ -178,6 +178,9 @@
     <Text Include="Shaders\static.vert" />
     <Text Include="Shaders\lit.frag" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\skinned.vert" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

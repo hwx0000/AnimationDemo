@@ -178,4 +178,7 @@
     <Text Include="Shaders\static.vert" />
     <Text Include="Shaders\lit.frag" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\skinned.vert" />
+  </ItemGroup>
 </Project>
