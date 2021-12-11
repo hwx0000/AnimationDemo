@@ -1,5 +1,6 @@
 #include "GLTFLoader.h"
 #include <iostream>
+#include <algorithm>
 #include "Transform.h"
 #include "vec2.h"
 #include "Track.h"
